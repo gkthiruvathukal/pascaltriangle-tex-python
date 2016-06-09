@@ -2,6 +2,8 @@ import os
 import os.path
 
 
+# "Infinite" sequence of factorials
+
 def factgen():
    i = n = 1
    yield n  # for 0!
@@ -24,14 +26,13 @@ class Pascal(object):
    def coefficient(self, k, n):
       return  self.facts[n] / (self.facts[k] * self.facts[n-k])
 
-
    def getrow(self, n):
       return [self.coefficient(k, n) for k in range(0, n+1)]
          
    def get_latex(self, nrows=21):
       body = []
-      for i in range(0, 21):
-         row = p.getrow(i)
+      for i in range(0, nrows):
+         row = self.getrow(i)
          text = [r"\textbf{\texttt{\Large %d}}" % j for j in row]
          line = r" \hfil ".join(text)
          cm = (i + 1) * 1.25
@@ -55,7 +56,7 @@ class Pascal(object):
          outfile.write(document % vars())
       output_dir_option = "-output-directory=%s" % Pascal.OUTPUT_DIR
       os.system("latexmk -pdf %(output_dir_option)s %(output_path)s" % vars())
-      os.system("latexmk -c %(output_dir_option)s" % vars())
+      os.system("latexmk -c %(output_dir_option)s %(output_path)s" % vars())
 
 if __name__ == '__main__':
    p = Pascal()
