@@ -1,28 +1,6 @@
 import os
+import os.path
 
-### Templates for generating LaTeX output.
-
-DOCUMENT=r"""
-\documentclass{article}
-\usepackage[margin=0.25in,landscape]{geometry}
-
-\begin{document}
-\vfil
-
-%(triangle)s
-\end{document}
-"""
-
-MINIPAGE = r"""
-\hfil
-\begin{minipage}{%(cm)f%(unit)s}
-%(line)s
-\end{minipage} 
-\hfil
-\par
-\vfil
-
-"""
 
 def factgen():
    i = n = 1
@@ -34,12 +12,14 @@ def factgen():
 
 class Pascal(object):
 
+   DOCUMENT_TEMPLATE_FILENAME = os.path.join("templates", "document.tex")
+   MINIPAGE_TEMPLATE_FILENAME = os.path.join("templates", "minipage.tex")
+   OUTPUT_DIR="output"
+   OUTPUT_FILENAME="triangle.tex"
+
    def __init__(self, n = 1000):
       fact = factgen()
-      self.facts = {}
-      for i in range(0, n):
-         self.facts[i] = fact.next() 
-
+      self.facts = { i : fact.next() for i in range(0, n) }
 
    def coefficient(self, k, n):
       return  self.facts[n] / (self.facts[k] * self.facts[n-k])
@@ -57,18 +37,25 @@ class Pascal(object):
          cm = (i + 1) * 1.25
          unit = "cm"
          print("i = " + str(i) + " cm = " + str(cm))
-         minibody = MINIPAGE % vars()
-         body.append(minibody)
+         minipage = self.load_file(Pascal.MINIPAGE_TEMPLATE_FILENAME)
+         body.append(minipage % vars())
       return "\n".join(body)
     
 
+   def load_file(self, filename):
+      with open(filename) as f:
+         return f.read()
+
    def render_pdf(self, nrows=21):
       triangle = self.get_latex(nrows)
-      with open("triangle.tex", "w") as outfile:
-         outfile.write(DOCUMENT % vars())
-      os.system("latexmk -C")
-      os.system("latexmk -pdf triangle")
-      os.system("latexmk -c")
+      document = self.load_file(Pascal.DOCUMENT_TEMPLATE_FILENAME)
+      if not os.path.exists(Pascal.OUTPUT_DIR): os.makedirs(Pascal.OUTPUT_DIR)
+      output_path = os.path.join(Pascal.OUTPUT_DIR, Pascal.OUTPUT_FILENAME)
+      with open(output_path, "w") as outfile:
+         outfile.write(document % vars())
+      output_dir_option = "-output-directory=%s" % Pascal.OUTPUT_DIR
+      os.system("latexmk -pdf %(output_dir_option)s %(output_path)s" % vars())
+      os.system("latexmk -c %(output_dir_option)s" % vars())
 
 if __name__ == '__main__':
    p = Pascal()
