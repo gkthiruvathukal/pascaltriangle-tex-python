@@ -55,7 +55,7 @@ class Pascal(object):
       with open(output_path, "w") as outfile:
          outfile.write(document % vars())
       output_dir_option = "-output-directory=%s" % Pascal.OUTPUT_DIR
-      os.system("latexmk -pdf %(output_dir_option)s %(output_path)s" % vars())
+      os.system("latexmk -interaction=nonstopmode -pdf %(output_dir_option)s %(output_path)s" % vars())
       os.system("latexmk -c %(output_dir_option)s %(output_path)s" % vars())
 
 if __name__ == '__main__':
